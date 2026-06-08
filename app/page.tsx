@@ -12,7 +12,7 @@ export default function HomePage() {
         <div style={{ fontFamily: 'serif', fontSize: '22px', fontWeight: 900, color: '#C8963E' }}>
           Top<span style={{ color: '#fff' }}>965</span>
         </div>
-        <Link href="/auth/login" style={{
+        <Link href="/auth" style={{
           border: '1px solid rgba(200,150,62,0.4)', color: '#E8B86D',
           padding: '8px 18px', borderRadius: '8px', textDecoration: 'none', fontSize: '13px',
         }}>Sign In</Link>
