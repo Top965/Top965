@@ -23,7 +23,7 @@ export default function HomePage() {
           Discover the <span style={{ color: '#C8963E' }}>Best</span> of Kuwait
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '18px', marginBottom: '40px' }}>
-          Real reviews from real visits 🇰🇼
+          Real reviews from real visits
         </p>
         <Link href="/search" style={{
           background: '#C8963E', color: '#0F0E0A', textDecoration: 'none',
@@ -38,7 +38,7 @@ export default function HomePage() {
           Top965
         </div>
         <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', marginTop: '8px' }}>
-          Made with love in Kuwait 🇰🇼
+          Made with love in Kuwait
         </p>
       </footer>
     </div>
