@@ -379,9 +379,6 @@ export default function AuthPage() {
               <button className="btn" onClick={() => handleStep2(false)} disabled={loading || !step2Complete}>
                 {loading ? 'Creating account...' : 'Create Account 🎉'}
               </button>
-              <button className="btn-outline" onClick={() => handleStep2(true)} disabled={loading}>
-                Skip for now
-              </button>
             </>}
 
           </div>
