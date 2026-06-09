@@ -68,7 +68,7 @@ export default function AuthPage() {
   }
 
   const handleStep1 = () => {
-    if (!fullName.trim()) return show('Please enter your full name.', 'error')
+    if (!fullName.trim()) return show('Please enter your name.', 'error')
     if (!email || !password) return show('Please fill in all fields.', 'error')
     if (password !== confirmPassword) return show('Passwords do not match.', 'error')
     if (password.length < 6) return show('Password must be at least 6 characters.', 'error')
