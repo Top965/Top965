@@ -1,5 +1,534 @@
 'use client'
 
+import { useState, useEffect, Suspense } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+
+const CATEGORIES = [
+  { id: 'restaurants', label: 'Restaurants', icon: '🍽️' },
+  { id: 'cafes', label: 'Cafes', icon: '☕' },
+  { id: 'frozen-yogurt', label: 'Frozen Yogurt', icon: '🍦' },
+  { id: 'bakeries', label: 'Bakeries', icon: '🥐' },
+  { id: 'burgers', label: 'Burgers', icon: '🍔' },
+  { id: 'pizza', label: 'Pizza', icon: '🍕' },
+  { id: 'sushi', label: 'Sushi', icon: '🍣' },
+  { id: 'shawarma', label: 'Shawarma', icon: '🌯' },
+  { id: 'gyms', label: 'Gyms', icon: '💪' },
+  { id: 'salons', label: 'Salons', icon: '✂️' },
+  { id: 'banks', label: 'Banks', icon: '🏦' },
+  { id: 'clinics', label: 'Clinics', icon: '🏥' },
+  { id: 'chalets', label: 'Chalets', icon: '🏖️' },
+  { id: 'hotels', label: 'Hotels', icon: '🏨' },
+  { id: 'supermarkets', label: 'Supermarkets', icon: '🛒' },
+  { id: 'pharmacies', label: 'Pharmacies', icon: '💊' },
+  { id: 'schools', label: 'Schools', icon: '🎓' },
+  { id: 'gas-stations', label: 'Gas Stations', icon: '⛽' },
+]
+
+const AREAS = [
+  'All Areas', 'Salmiya', 'Hawalli', 'Rumaithiya', 'Bayan', 'Mishref',
+  'Kuwait City', 'Sharq', 'Jabriya', 'Surra', 'Salwa',
+  'Mahboula', 'Fintas', 'Fahaheel', 'Ahmadi',
+  'Shuwaikh', 'Rai', 'Ardiya', 'Farwaniya', 'Khaitan',
+  'Sabah Al Salem', 'Mubarak Al Kabeer', 'Qurain',
+  'Jahra', 'Egaila', 'Messila',
+]
+
+const SORT_OPTIONS = [
+  { id: 'rating', label: 'Top Rated' },
+  { id: 'reviews', label: 'Most Reviewed' },
+  { id: 'newest', label: 'Newly Added' },
+]
+
+// Mock data for UI demonstration
+const MOCK_PLACES = [
+  { id: '1', name: 'Pinkberry Kuwait', category: 'Frozen Yogurt', area: 'Salmiya', rating: 4.8, reviews: 234, verified: true, image: null },
+  { id: '2', name: "Menchie's", category: 'Frozen Yogurt', area: 'Hawalli', rating: 4.5, reviews: 187, verified: true, image: null },
+  { id: '3', name: 'llaollao', category: 'Frozen Yogurt', area: 'Rumaithiya', rating: 4.7, reviews: 312, verified: false, image: null },
+  { id: '4', name: 'Berry Cool', category: 'Frozen Yogurt', area: 'Salmiya', rating: 4.2, reviews: 98, verified: false, image: null },
+  { id: '5', name: 'YogurtLand', category: 'Frozen Yogurt', area: 'Jabriya', rating: 4.4, reviews: 156, verified: true, image: null },
+  { id: '6', name: 'Tutti Frutti', category: 'Frozen Yogurt', area: 'Fahaheel', rating: 4.1, reviews: 74, verified: false, image: null },
+]
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      {[1,2,3,4,5].map(i => (
+        <span key={i} style={{
+          fontSize: 12,
+          color: i <= Math.round(rating) ? '#E8B94F' : '#333',
+        }}>★</span>
+      ))}
+      <span style={{ fontSize: 13, color: '#E8B94F', fontWeight: 700, marginLeft: 2 }}>{rating.toFixed(1)}</span>
+    </div>
+  )
+}
+
+function SearchContent() {
+  const supabase = createClientComponentClient()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const [query, setQuery] = useState(searchParams.get('q') || '')
+  const [category, setCategory] = useState(searchParams.get('category') || '')
+  const [area, setArea] = useState(searchParams.get('area') || 'All Areas')
+  const [sort, setSort] = useState('rating')
+  const [minRating, setMinRating] = useState(0)
+  const [places, setPlaces] = useState(MOCK_PLACES)
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('q') || searchParams.get('category')) {
+      handleSearch()
+    }
+  }, [])
+
+  const handleSearch = async () => {
+    setLoading(true)
+    setSearched(true)
+
+    try {
+      let dbQuery = supabase
+        .from('places')
+        .select('*')
+
+      if (query) dbQuery = dbQuery.ilike('name', `%${query}%`)
+      if (category) dbQuery = dbQuery.eq('category', category)
+      if (area && area !== 'All Areas') dbQuery = dbQuery.eq('area', area)
+      if (minRating > 0) dbQuery = dbQuery.gte('rating', minRating)
+
+      if (sort === 'rating') dbQuery = dbQuery.order('rating', { ascending: false })
+      else if (sort === 'reviews') dbQuery = dbQuery.order('review_count', { ascending: false })
+      else if (sort === 'newest') dbQuery = dbQuery.order('created_at', { ascending: false })
+
+      const { data, error } = await dbQuery.limit(50)
+
+      if (error || !data || data.length === 0) {
+        setPlaces(MOCK_PLACES)
+      } else {
+        setPlaces(data)
+      }
+    } catch {
+      setPlaces(MOCK_PLACES)
+    }
+
+    setLoading(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSearch()
+  }
+
+  const filteredPlaces = minRating > 0
+    ? places.filter(p => p.rating >= minRating)
+    : places
+
+  const resultLabel = [
+    category || query || 'All Places',
+    area !== 'All Areas' ? `in ${area}` : 'in Kuwait',
+  ].join(' ')
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+          --gold: #E8B94F; --gold-dark: #C49A2F; --gold-dim: rgba(232,185,79,0.1);
+          --dark: #0D0D0D; --dark2: #131313; --dark3: #1C1C1C;
+          --border: rgba(255,255,255,0.07); --border-gold: rgba(232,185,79,0.2);
+          --text: #F0EDE6; --muted: #777; --muted2: #3a3a3a;
+        }
+        body { background: var(--dark); color: var(--text); font-family: 'DM Sans', sans-serif; }
+
+        /* NAV */
+        .nav { 
+          height: 64px; background: var(--dark2); border-bottom: 1px solid var(--border);
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 32px; position: sticky; top: 0; z-index: 100;
+        }
+        .nav-logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: var(--gold); text-decoration: none; }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+        .nav-link:hover { color: var(--gold); }
+        .nav-btn { padding: 8px 18px; background: var(--gold); color: var(--dark); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; }
+
+        /* SEARCH HERO */
+        .search-hero {
+          background: var(--dark2);
+          border-bottom: 1px solid var(--border);
+          padding: 32px;
+        }
+        .search-hero h1 {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(22px, 3vw, 32px);
+          font-weight: 900;
+          margin-bottom: 20px;
+        }
+        .search-hero h1 em { color: var(--gold); font-style: normal; }
+
+        .search-bar {
+          display: flex; gap: 10px; flex-wrap: wrap;
+          max-width: 900px;
+        }
+
+        .search-input {
+          flex: 1; min-width: 200px;
+          padding: 13px 18px;
+          background: var(--dark3);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--text);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px; outline: none;
+          transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--gold); }
+        .search-input::placeholder { color: var(--muted2); }
+
+        .search-select {
+          padding: 13px 16px;
+          background: var(--dark3);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--text);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px; outline: none;
+          cursor: pointer; appearance: none;
+          transition: border-color 0.2s;
+          min-width: 150px;
+        }
+        .search-select:focus { border-color: var(--gold); }
+        .search-select option { background: var(--dark3); }
+
+        .search-btn {
+          padding: 13px 28px;
+          background: var(--gold); color: var(--dark);
+          border: none; border-radius: 10px;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px; font-weight: 700;
+          cursor: pointer; transition: background 0.2s;
+          white-space: nowrap;
+        }
+        .search-btn:hover { background: var(--gold-dark); }
+
+        /* CATEGORY PILLS */
+        .category-section { padding: 20px 32px; border-bottom: 1px solid var(--border); }
+        .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .cat-pill {
+          display: flex; align-items: center; gap: 6px;
+          padding: 8px 16px;
+          background: var(--dark3);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          color: var(--muted);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px; font-weight: 500;
+          cursor: pointer; white-space: nowrap;
+          transition: all 0.2s;
+        }
+        .cat-pill:hover { border-color: var(--border-gold); color: var(--text); }
+        .cat-pill.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); font-weight: 600; }
+
+        /* RESULTS SECTION */
+        .results-section { padding: 24px 32px; }
+
+        .results-header {
+          display: flex; align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+          flex-wrap: wrap; gap: 12px;
+        }
+
+        .results-title {
+          font-family: 'Playfair Display', serif;
+          font-size: 22px; font-weight: 700;
+        }
+        .results-title span { color: var(--gold); }
+        .results-count { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .filter-select {
+          padding: 8px 14px;
+          background: var(--dark3);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          color: var(--text);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 12px; outline: none;
+          cursor: pointer; appearance: none;
+        }
+        .filter-select option { background: var(--dark3); }
+
+        .rating-filter { display: flex; gap: 6px; }
+        .rating-btn {
+          padding: 7px 12px;
+          background: var(--dark3);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          color: var(--muted);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 12px; font-weight: 500;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .rating-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+        /* GRID */
+        .places-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 20px;
+        }
+
+        .place-card {
+          background: var(--dark3);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          overflow: hidden;
+          cursor: pointer;
+          transition: border-color 0.2s, transform 0.2s;
+          text-decoration: none;
+          display: block;
+          animation: fadeUp 0.4s ease both;
+        }
+        .place-card:hover { border-color: var(--border-gold); transform: translateY(-3px); }
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-image {
+          width: 100%; height: 160px;
+          background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 48px;
+          border-bottom: 1px solid var(--border);
+          position: relative;
+        }
+
+        .verified-badge {
+          position: absolute; top: 10px; right: 10px;
+          background: rgba(232,185,79,0.15);
+          border: 1px solid var(--border-gold);
+          color: var(--gold);
+          font-size: 10px; font-weight: 700;
+          padding: 3px 8px; border-radius: 20px;
+          letter-spacing: 0.5px;
+        }
+
+        .card-body { padding: 16px; }
+        .card-name {
+          font-family: 'Playfair Display', serif;
+          font-size: 17px; font-weight: 700;
+          color: var(--text); margin-bottom: 6px;
+          white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .card-meta {
+          display: flex; align-items: center;
+          justify-content: space-between;
+          margin-top: 8px;
+        }
+        .card-area { font-size: 12px; color: var(--muted); }
+        .card-reviews { font-size: 11px; color: var(--muted2); }
+        .card-category {
+          font-size: 11px; color: var(--muted);
+          margin-bottom: 6px;
+          text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+          text-align: center; padding: 80px 20px;
+          color: var(--muted);
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--text); margin-bottom: 8px; }
+        .empty-sub { font-size: 14px; line-height: 1.6; }
+
+        /* LOADING */
+        .loading-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 20px;
+        }
+        .skeleton {
+          background: var(--dark3);
+          border: 1px solid var(--border);
+          border-radius: 14px; overflow: hidden;
+        }
+        .skeleton-img { height: 160px; background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        .skeleton-body { padding: 16px; }
+        .skeleton-line { height: 12px; background: #222; border-radius: 4px; margin-bottom: 8px; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        @media (max-width: 600px) {
+          .nav { padding: 0 16px; }
+          .search-hero { padding: 20px 16px; }
+          .category-section { padding: 16px; }
+          .results-section { padding: 20px 16px; }
+          .search-bar { flex-direction: column; }
+          .search-input, .search-select { width: 100%; }
+        }
+      `}</style>
+
+      {/* NAV */}
+      <nav className="nav">
+        <Link href="/" className="nav-logo">Top965</Link>
+        <div className="nav-right">
+          <Link href="/" className="nav-link">Home</Link>
+          <Link href="/auth" className="nav-btn">Sign In</Link>
+        </div>
+      </nav>
+
+      {/* SEARCH HERO */}
+      <div className="search-hero">
+        <h1>Find the <em>Best</em> in Kuwait</h1>
+        <div className="search-bar">
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search restaurants, cafes, salons..."
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <select className="search-select" value={category} onChange={e => setCategory(e.target.value)}>
+            <option value="">All Categories</option>
+            {CATEGORIES.map(c => (
+              <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
+            ))}
+          </select>
+          <select className="search-select" value={area} onChange={e => setArea(e.target.value)}>
+            {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <button className="search-btn" onClick={handleSearch}>
+            Search →
+          </button>
+        </div>
+      </div>
+
+      {/* CATEGORY PILLS */}
+      <div className="category-section">
+        <div className="category-scroll">
+          {CATEGORIES.map(c => (
+            <button
+              key={c.id}
+              className={`cat-pill ${category === c.id ? 'active' : ''}`}
+              onClick={() => { setCategory(c.id); handleSearch(); }}
+            >
+              <span>{c.icon}</span>
+              <span>{c.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* RESULTS */}
+      <div className="results-section">
+        {!searched ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔍</div>
+            <div className="empty-title">Discover Kuwait</div>
+            <div className="empty-sub">Search for a place, pick a category,<br />or browse by area to get started.</div>
+          </div>
+        ) : loading ? (
+          <div className="loading-grid">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="skeleton">
+                <div className="skeleton-img" />
+                <div className="skeleton-body">
+                  <div className="skeleton-line" style={{ width: '70%' }} />
+                  <div className="skeleton-line" style={{ width: '40%' }} />
+                  <div className="skeleton-line" style={{ width: '55%' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="results-header">
+              <div>
+                <div className="results-title">
+                  <span>{category ? CATEGORIES.find(c => c.id === category)?.label || category : query || 'All Places'}</span>
+                  {area !== 'All Areas' ? ` in ${area}` : ' in Kuwait'}
+                </div>
+                <div className="results-count">{filteredPlaces.length} places found</div>
+              </div>
+              <div className="filter-bar">
+                <select className="filter-select" value={sort} onChange={e => setSort(e.target.value)}>
+                  {SORT_OPTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                </select>
+                <div className="rating-filter">
+                  {[0, 3, 4].map(r => (
+                    <button
+                      key={r}
+                      className={`rating-btn ${minRating === r ? 'active' : ''}`}
+                      onClick={() => setMinRating(r)}
+                    >
+                      {r === 0 ? 'All' : `${r}★+`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {filteredPlaces.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">😔</div>
+                <div className="empty-title">No places found</div>
+                <div className="empty-sub">Try a different search or remove some filters.</div>
+              </div>
+            ) : (
+              <div className="places-grid">
+                {filteredPlaces.map((place, i) => (
+                  <Link
+                    key={place.id}
+                    href={`/place/${place.id}`}
+                    className="place-card"
+                    style={{ animationDelay: `${i * 0.05}s` }}
+                  >
+                    <div className="card-image">
+                      <span>{CATEGORIES.find(c => c.id === place.category || c.label === place.category)?.icon || '🏢'}</span>
+                      {place.verified && <span className="verified-badge">✓ VERIFIED</span>}
+                    </div>
+                    <div className="card-body">
+                      <div className="card-category">{place.category}</div>
+                      <div className="card-name">{place.name}</div>
+                      <StarRating rating={place.rating} />
+                      <div className="card-meta">
+                        <span className="card-area">📍 {place.area}</span>
+                        <span className="card-reviews">{place.reviews} reviews</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div style={{background:'#0D0D0D', minHeight:'100vh'}} />}>
+      <SearchContent />
+    </Suspense>
+  )
+}
+
+
+On Tue, 9 Jun 2026, 23:47 Wael Lahlabat, <wael.lahlabat@gmail.com> wrote:
+'use client'
+
 import { useState, useEffect, useCallback } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
