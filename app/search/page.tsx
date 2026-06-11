@@ -115,7 +115,7 @@ export default function SearchPage() {
         .search-btn { padding: 13px 28px; background: var(--gold); color: var(--dark); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
         .search-btn:hover { background: var(--gold-dark); }
         .cat-section { padding: 20px 32px; border-bottom: 1px solid var(--border); }
-        .cat-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+        .cat-scroll { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 4px; }
         .cat-scroll::-webkit-scrollbar { display: none; }
         .cat-pill { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--dark3); border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
         .cat-pill:hover { border-color: var(--border-gold); color: var(--text); }
