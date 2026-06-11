@@ -107,12 +107,12 @@ export default function SearchPage() {
         .search-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 900; margin-bottom: 20px; }
         .search-hero h1 em { color: var(--gold); font-style: normal; }
         .search-bar { display: flex; gap: 10px; flex-wrap: wrap; max-width: 900px; }
-        .search-input { flex: 1; min-width: 200px; padding: 13px 18px; background: var(--dark3); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .search-input { flex: 1; min-width: 200px; padding: 16px 18px; background: var(--dark3); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
         .search-input:focus { border-color: var(--gold); }
         .search-input::placeholder { color: var(--muted2); }
-        .search-select { padding: 13px 16px; background: var(--dark3); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; cursor: pointer; appearance: none; min-width: 150px; }
+        .search-select { padding: 16px 16px; background: var(--dark3); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; cursor: pointer; appearance: none; min-width: 150px; }
         .search-select option { background: var(--dark3); }
-        .search-btn { padding: 13px 28px; background: var(--gold); color: var(--dark); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .search-btn { padding: 16px 28px; background: var(--gold); color: var(--dark); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
         .search-btn:hover { background: var(--gold-dark); }
         .cat-section { padding: 20px 32px; border-bottom: 1px solid var(--border); }
         .cat-scroll { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 4px; }
