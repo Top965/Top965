@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextResponse } from 'next/server'
 
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
