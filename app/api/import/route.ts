@@ -71,7 +71,12 @@ export async function GET(request: Request) {
   if (token !== process.env.IMPORT_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-
+if (searchParams.get('debug') === '1') {
+    const testUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurant+Kuwait&key=${GOOGLE_API_KEY}`
+    const res = await fetch(testUrl)
+    const data = await res.json()
+    return NextResponse.json({ status: data.status, count: data.results?.length, first: data.results?.[0]?.name })
+  }
   let total = 0
   const imported: string[] = []
   const errors: string[] = []
