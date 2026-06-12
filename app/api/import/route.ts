@@ -60,7 +60,7 @@ function sleep(ms: number) {
 
 async function fetchPlaces(query: string) {
   const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&region=kw`
-  const res = await fetch(url)
+  const res = await fetch(url, { cache: 'no-store' })
   return res.json()
 }
 
