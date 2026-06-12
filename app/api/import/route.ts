@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -53,17 +54,9 @@ function slugify(name: string): string {
 }
 
 async function insertPlace(record: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/places`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY!,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Prefer': 'return=minimal',
-    },
-    body: JSON.stringify(record),
-  })
-  return res
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_KEY!)
+  const { error } = await supabase.from('places').insert(record)
+  return error
 }
 
 export async function GET(request: Request) {
@@ -155,18 +148,13 @@ export async function GET(request: Request) {
             tags: null,
           }
 
-          const insertRes = await insertPlace(record)
-
-          if (insertRes.ok || insertRes.status === 201) {
-            total++
-            imported.push(place.name)
-          } else {
-            const errText = await insertRes.text()
-            errors.push(`${place.name}: HTTP ${insertRes.status} - ${errText.slice(0, 300)}`)
-          }
-        } catch (placeErr: unknown) {
-          errors.push(`${place.name}: ${placeErr instanceof Error ? placeErr.message : 'Unknown'}`)
-        }
+          const insertError = await insertPlace(record)
+if (!insertError) {
+  total++
+  imported.push(place.name)
+} else {
+  errors.push(`${place.name}: ${insertError.message}`)
+}
       }
     } catch (err: unknown) {
       errors.push(`${category}: ${err instanceof Error ? err.message : 'Unknown'}`)
