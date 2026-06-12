@@ -162,7 +162,7 @@ export async function GET(request: Request) {
             imported.push(place.name)
           } else {
             const errText = await insertRes.text()
-            errors.push(`${place.name}: HTTP ${insertRes.status} - ${errText.slice(0, 100)}`)
+            errors.push(`${place.name}: HTTP ${insertRes.status} - ${errText.slice(0, 300)}`)
           }
         } catch (placeErr: unknown) {
           errors.push(`${place.name}: ${placeErr instanceof Error ? placeErr.message : 'Unknown'}`)
