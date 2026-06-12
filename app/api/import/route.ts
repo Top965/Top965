@@ -67,33 +67,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Debug mode
-  if (searchParams.get('debug') === '1') {
-    try {
-      const testUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurant+Kuwait&key=${GOOGLE_API_KEY}`
-      const res = await fetch(testUrl)
-      const data = await res.json()
-
-      const sbRes = await fetch(`${SUPABASE_URL}/rest/v1/places?limit=1`, {
-        headers: {
-          'apikey': SUPABASE_KEY!,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-        },
-      })
-
-      return NextResponse.json({
-        google_status: data.status,
-        google_count: data.results?.length,
-        first_place: data.results?.[0]?.name,
-        supabase_status: sbRes.status,
-        supabase_url_set: !!SUPABASE_URL,
-        supabase_key_set: !!SUPABASE_KEY,
-      })
-    } catch (err: unknown) {
-      return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' })
-    }
-  }
-
   let total = 0
   const imported: string[] = []
   const errors: string[] = []
@@ -149,12 +122,15 @@ export async function GET(request: Request) {
           }
 
           const insertError = await insertPlace(record)
-if (!insertError) {
-  total++
-  imported.push(place.name)
-} else {
-  errors.push(`${place.name}: ${insertError.message}`)
-}
+          if (!insertError) {
+            total++
+            imported.push(place.name)
+          } else {
+            errors.push(`${place.name}: ${insertError.message}`)
+          }
+        } catch (placeErr: unknown) {
+          errors.push(`${place.name}: ${placeErr instanceof Error ? placeErr.message : 'Unknown'}`)
+        }
       }
     } catch (err: unknown) {
       errors.push(`${category}: ${err instanceof Error ? err.message : 'Unknown'}`)
