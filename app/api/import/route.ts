@@ -47,6 +47,13 @@ function getArea(address: string): string {
   return 'Kuwait'
 }
 
+function slugify(name: string): string {
+  return name.toLowerCase().trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .slice(0, 60) + '-' + Math.random().toString(36).slice(2, 7)
+}
+
 function sleep(ms: number) {
   return new Promise(r => setTimeout(r, ms))
 }
@@ -58,62 +65,86 @@ async function fetchPlaces(query: string) {
 }
 
 export async function GET(request: Request) {
-  // Security check - require a secret token
   const { searchParams } = new URL(request.url)
   const token = searchParams.get('token')
-  
+
   if (token !== process.env.IMPORT_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   let total = 0
-  const results: any[] = []
+  const imported: string[] = []
+  const errors: string[] = []
 
   for (const { query, category } of SEARCHES) {
     try {
       const data = await fetchPlaces(query)
-      
       if (!data.results) continue
 
       for (const place of data.results.slice(0, 20)) {
+        const areaName = getArea(place.formatted_address || '')
+
         const record = {
-          google_place_id: place.place_id,
-          name: place.name,
-          category,
-          area: getArea(place.formatted_address || ''),
-          address: place.formatted_address || null,
-          google_rating: place.rating || null,
-          google_review_count: place.user_ratings_total || 0,
-          rating: 0,
-          review_count: 0,
-          photo_url: place.photos?.[0]?.photo_reference
-            ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_API_KEY}`
-            : null,
+          name_en: place.name,
+          name_ar: null,
+          slug: slugify(place.name),
+          description_en: null,
+          description_ar: null,
+          category_id: null,
+          area_id: null,
+          address_en: place.formatted_address || null,
+          address_ar: null,
           lat: place.geometry?.location?.lat || null,
           lng: place.geometry?.location?.lng || null,
-          country: 'KW',
-          verified: false,
+          google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+          phone: null,
+          whatsapp: null,
+          website: null,
+          instagram: null,
+          snapchat: null,
+          cover_image_url: place.photos?.[0]?.photo_reference
+            ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_API_KEY}`
+            : null,
+          photos: null,
+          avg_rating: 0,
+          review_count: 0,
+          verified_review_count: 0,
+          google_score: place.rating || null,
+          google_reviews: place.user_ratings_total || 0,
+          composite_score: place.rating || null,
+          is_claimed: false,
+          is_featured: false,
+          is_verified_business: false,
+          is_active: true,
+          is_approved: true,
+          view_count: 0,
+          save_count: 0,
+          search_count: 0,
+          tags: [category, areaName],
         }
 
         const { error } = await supabase
           .from('places')
-          .upsert(record, { onConflict: 'google_place_id' })
+          .insert(record)
 
         if (!error) {
           total++
-          results.push(place.name)
+          imported.push(place.name)
+        } else {
+          errors.push(`${place.name}: ${error.message}`)
         }
       }
 
       await sleep(500)
     } catch (err: any) {
-      console.error(`Error for ${category}:`, err.message)
+      errors.push(`${category}: ${err.message}`)
     }
   }
 
   return NextResponse.json({
     success: true,
     total_imported: total,
-    places: results
+    errors: errors.slice(0, 20),
+    places: imported
   })
 }
