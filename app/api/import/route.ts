@@ -125,7 +125,7 @@ if (searchParams.get('debug') === '1') {
           view_count: 0,
           save_count: 0,
           search_count: 0,
-          tags: [category, areaName],
+          tags: null,
         }
 
         const { error } = await supabase
