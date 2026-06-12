@@ -1,4 +1,5 @@
 export const runtime = 'edge'
+
 import { NextResponse } from 'next/server'
 
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
@@ -51,13 +52,7 @@ function slugify(name: string): string {
     .slice(0, 60) + '-' + Math.random().toString(36).slice(2, 7)
 }
 
-function sleep(ms: number) {
-  return new Promise(r => setTimeout(r, ms))
-}
-
-export const dynamic = 'force-dynamic'
-
-async function insertPlace(record: any) {
+async function insertPlace(record: Record<string, unknown>) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/places`, {
     method: 'POST',
     headers: {
@@ -67,7 +62,6 @@ async function insertPlace(record: any) {
       'Prefer': 'return=minimal',
     },
     body: JSON.stringify(record),
-    cache: 'no-store',
   })
   return res
 }
@@ -84,29 +78,26 @@ export async function GET(request: Request) {
   if (searchParams.get('debug') === '1') {
     try {
       const testUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurant+Kuwait&key=${GOOGLE_API_KEY}`
-      const res = await fetch(testUrl, { cache: 'no-store' })
+      const res = await fetch(testUrl)
       const data = await res.json()
 
-      // Test Supabase connection
       const sbRes = await fetch(`${SUPABASE_URL}/rest/v1/places?limit=1`, {
         headers: {
           'apikey': SUPABASE_KEY!,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
         },
-        cache: 'no-store',
       })
-      const sbStatus = sbRes.status
 
-      return NextResponse.json({ 
-        google_status: data.status, 
-        google_count: data.results?.length, 
+      return NextResponse.json({
+        google_status: data.status,
+        google_count: data.results?.length,
         first_place: data.results?.[0]?.name,
-        supabase_status: sbStatus,
+        supabase_status: sbRes.status,
         supabase_url_set: !!SUPABASE_URL,
         supabase_key_set: !!SUPABASE_KEY,
       })
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message })
+    } catch (err: unknown) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' })
     }
   }
 
@@ -117,7 +108,7 @@ export async function GET(request: Request) {
   for (const { query, category } of SEARCHES) {
     try {
       const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&region=kw`
-      const res = await fetch(url, { cache: 'no-store' })
+      const res = await fetch(url)
       const data = await res.json()
 
       if (!data.results || data.results.length === 0) {
@@ -165,7 +156,7 @@ export async function GET(request: Request) {
           }
 
           const insertRes = await insertPlace(record)
-          
+
           if (insertRes.ok || insertRes.status === 201) {
             total++
             imported.push(place.name)
@@ -173,14 +164,12 @@ export async function GET(request: Request) {
             const errText = await insertRes.text()
             errors.push(`${place.name}: HTTP ${insertRes.status} - ${errText.slice(0, 100)}`)
           }
-        } catch (placeErr: any) {
-          errors.push(`${place.name}: ${placeErr.message}`)
+        } catch (placeErr: unknown) {
+          errors.push(`${place.name}: ${placeErr instanceof Error ? placeErr.message : 'Unknown'}`)
         }
       }
-
-      await sleep(300)
-    } catch (err: any) {
-      errors.push(`${category} fetch error: ${err.message}`)
+    } catch (err: unknown) {
+      errors.push(`${category}: ${err instanceof Error ? err.message : 'Unknown'}`)
     }
   }
 
@@ -188,6 +177,6 @@ export async function GET(request: Request) {
     success: true,
     total_imported: total,
     errors: errors.slice(0, 20),
-    places: imported
+    places: imported,
   })
 }
