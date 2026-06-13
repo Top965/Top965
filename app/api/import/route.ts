@@ -7,20 +7,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const SEARCHES = [
   { query: 'restaurant Kuwait City', category: 'Restaurants' },
-  { query: 'cafe Kuwait City', category: 'Cafes' },
-  { query: 'frozen yogurt Kuwait', category: 'Frozen Yogurt' },
-  { query: 'bakery Kuwait', category: 'Bakeries' },
-  { query: 'burger Kuwait', category: 'Burgers' },
-  { query: 'pizza Kuwait', category: 'Pizza' },
-  { query: 'sushi Kuwait', category: 'Sushi' },
-  { query: 'shawarma Kuwait', category: 'Shawarma' },
-  { query: 'gym Kuwait', category: 'Gyms' },
-  { query: 'salon Kuwait', category: 'Salons' },
-  { query: 'bank Kuwait', category: 'Banks' },
-  { query: 'clinic Kuwait', category: 'Clinics' },
-  { query: 'hotel Kuwait', category: 'Hotels' },
-  { query: 'supermarket Kuwait', category: 'Supermarkets' },
-  { query: 'pharmacy Kuwait', category: 'Pharmacies' },
+
 ]
 
 const AREA_MAP: Record<string, string> = {
