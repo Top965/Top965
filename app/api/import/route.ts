@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -7,41 +6,13 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const SEARCHES = [
   { query: 'restaurant Kuwait City', category: 'Restaurants' },
-
 ]
-
-const AREA_MAP: Record<string, string> = {
-  'salmiya': 'Salmiya', 'hawalli': 'Hawalli', 'rumaithiya': 'Rumaithiya',
-  'bayan': 'Bayan', 'mishref': 'Mishref', 'kuwait city': 'Kuwait City',
-  'sharq': 'Sharq', 'jabriya': 'Jabriya', 'surra': 'Surra', 'salwa': 'Salwa',
-  'mahboula': 'Mahboula', 'fintas': 'Fintas', 'fahaheel': 'Fahaheel',
-  'ahmadi': 'Ahmadi', 'shuwaikh': 'Shuwaikh', 'rai': 'Rai',
-  'ardiya': 'Ardiya', 'farwaniya': 'Farwaniya', 'khaitan': 'Khaitan',
-  'jahra': 'Jahra', 'egaila': 'Egaila', 'messila': 'Messila',
-  'qurain': 'Qurain', 'sabah al salem': 'Sabah Al Salem',
-  'mubarak': 'Mubarak Al Kabeer',
-}
-
-function getArea(address: string): string {
-  if (!address) return 'Kuwait'
-  const lower = address.toLowerCase()
-  for (const [key, val] of Object.entries(AREA_MAP)) {
-    if (lower.includes(key)) return val
-  }
-  return 'Kuwait'
-}
 
 function slugify(name: string): string {
   return name.toLowerCase().trim()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .slice(0, 60) + '-' + Date.now().toString(36)
-}
-
-async function insertPlace(record: Record<string, unknown>) {
-  const supabase = createClient(SUPABASE_URL!, SUPABASE_KEY!)
-  const { error } = await supabase.from('places').insert(record)
-  return error
 }
 
 export async function GET(request: Request) {
@@ -55,46 +26,57 @@ export async function GET(request: Request) {
   let total = 0
   const imported: string[] = []
   const errors: string[] = []
+  const logs: string[] = []
 
   for (const { query, category } of SEARCHES) {
     try {
-      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&region=kw`
-      const res = await fetch(url)
-      const data = await res.json()
+      const googleUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=REDACTED&region=kw`
+      const actualUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&region=kw`
+      
+      logs.push(`[Google] Calling: ${googleUrl}`)
+      console.log(`[Google] Calling: ${googleUrl}`)
+
+      let res: Response
+      try {
+        res = await fetch(actualUrl)
+        logs.push(`[Google] HTTP status: ${res.status}`)
+        console.log(`[Google] HTTP status: ${res.status}`)
+      } catch (fetchErr: unknown) {
+        const msg = fetchErr instanceof Error ? `${fetchErr.message}\n${fetchErr.stack}` : 'Unknown fetch error'
+        logs.push(`[Google] FETCH EXCEPTION: ${msg}`)
+        console.error(`[Google] FETCH EXCEPTION: ${msg}`)
+        errors.push(`${category}: FETCH EXCEPTION - ${msg}`)
+        continue
+      }
+
+      const body = await res.text()
+      logs.push(`[Google] Response body: ${body.slice(0, 500)}`)
+      console.log(`[Google] Response body: ${body.slice(0, 500)}`)
+
+      const data = JSON.parse(body)
 
       if (!data.results || data.results.length === 0) {
         errors.push(`${category}: No results (status: ${data.status})`)
         continue
       }
 
-      for (const place of data.results.slice(0, 20)) {
+      logs.push(`[Google] Got ${data.results.length} results`)
+      console.log(`[Google] Got ${data.results.length} results`)
+
+      for (const place of data.results.slice(0, 5)) {
         try {
           const record = {
             name_en: place.name,
-            name_ar: null,
             slug: slugify(place.name),
-            description_en: null,
-            description_ar: null,
-            category_id: null,
-            area_id: null,
             address_en: place.formatted_address || null,
-            address_ar: null,
             lat: place.geometry?.location?.lat || null,
             lng: place.geometry?.location?.lng || null,
             google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
-            phone: null,
-            whatsapp: null,
-            website: null,
-            instagram: null,
-            snapchat: null,
-            cover_image_url: null,
-            photos: null,
+            google_score: place.rating || null,
+            google_reviews: place.user_ratings_total || 0,
             avg_rating: 0,
             review_count: 0,
             verified_review_count: 0,
-            google_score: place.rating || null,
-            google_reviews: place.user_ratings_total || 0,
-            composite_score: place.rating || null,
             is_claimed: false,
             is_featured: false,
             is_verified_business: false,
@@ -103,29 +85,54 @@ export async function GET(request: Request) {
             view_count: 0,
             save_count: 0,
             search_count: 0,
-            tags: null,
           }
 
-          const insertError = await insertPlace(record)
-          if (!insertError) {
+          logs.push(`[Supabase] Inserting: ${place.name}`)
+          console.log(`[Supabase] Inserting: ${place.name}`)
+
+          const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/places`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_KEY!,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify(record),
+          })
+
+          logs.push(`[Supabase] Insert status: ${insertRes.status}`)
+          console.log(`[Supabase] Insert status: ${insertRes.status}`)
+
+          if (insertRes.ok || insertRes.status === 201) {
             total++
             imported.push(place.name)
           } else {
-            errors.push(`${place.name}: ${insertError.message}`)
+            const errText = await insertRes.text()
+            logs.push(`[Supabase] Insert error: ${errText.slice(0, 200)}`)
+            console.error(`[Supabase] Insert error: ${errText.slice(0, 200)}`)
+            errors.push(`${place.name}: ${errText.slice(0, 200)}`)
           }
         } catch (placeErr: unknown) {
-          errors.push(`${place.name}: ${placeErr instanceof Error ? placeErr.message : 'Unknown'}`)
+          const msg = placeErr instanceof Error ? `${placeErr.message}\n${placeErr.stack}` : 'Unknown'
+          logs.push(`[Place] EXCEPTION for ${place.name}: ${msg}`)
+          console.error(`[Place] EXCEPTION for ${place.name}: ${msg}`)
+          errors.push(`${place.name}: ${msg}`)
         }
       }
     } catch (err: unknown) {
-      errors.push(`${category}: ${err instanceof Error ? err.message : 'Unknown'}`)
+      const msg = err instanceof Error ? `${err.message}\n${err.stack}` : 'Unknown'
+      logs.push(`[Category] EXCEPTION for ${category}: ${msg}`)
+      console.error(`[Category] EXCEPTION for ${category}: ${msg}`)
+      errors.push(`${category}: ${msg}`)
     }
   }
 
   return NextResponse.json({
     success: true,
     total_imported: total,
-    errors: errors.slice(0, 20),
+    errors,
     places: imported,
+    logs,
   })
 }
