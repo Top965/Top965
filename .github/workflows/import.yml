@@ -1,0 +1,85 @@
+name: Import Kuwait Places
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run import
+        run: |
+          node --version
+          cat << 'EOF' > import.mjs
+          const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
+          const SUPABASE_URL = process.env.SUPABASE_URL
+          const SUPABASE_KEY = process.env.SUPABASE_KEY
+
+          const SEARCHES = [
+            { query: 'restaurant Kuwait City' },
+            { query: 'cafe Kuwait City' },
+            { query: 'burger Kuwait' },
+            { query: 'pizza Kuwait' },
+            { query: 'shawarma Kuwait' },
+            { query: 'gym Kuwait' },
+            { query: 'salon Kuwait' },
+            { query: 'hotel Kuwait' },
+            { query: 'pharmacy Kuwait' },
+            { query: 'supermarket Kuwait' },
+          ]
+
+          function slugify(name) {
+            return name.toLowerCase().trim()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-')
+              .slice(0, 60) + '-' + Date.now().toString(36)
+          }
+
+          let total = 0
+          for (const { query } of SEARCHES) {
+            const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&region=kw`
+            const res = await fetch(url)
+            const data = await res.json()
+            console.log(`${query}: ${data.status} - ${data.results?.length} results`)
+            if (!data.results) continue
+            for (const place of data.results.slice(0, 20)) {
+              const record = {
+                name_en: place.name,
+                slug: slugify(place.name),
+                address_en: place.formatted_address || null,
+                lat: place.geometry?.location?.lat || null,
+                lng: place.geometry?.location?.lng || null,
+                google_maps_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+                google_score: place.rating || null,
+                google_reviews: place.user_ratings_total || 0,
+                avg_rating: 0, review_count: 0, verified_review_count: 0,
+                is_claimed: false, is_featured: false, is_verified_business: false,
+                is_active: true, is_approved: true,
+                view_count: 0, save_count: 0, search_count: 0,
+              }
+              const ins = await fetch(`${SUPABASE_URL}/rest/v1/places`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': SUPABASE_KEY,
+                  'Authorization': `Bearer ${SUPABASE_KEY}`,
+                  'Prefer': 'return=minimal',
+                },
+                body: JSON.stringify(record),
+              })
+              if (ins.ok || ins.status === 201) {
+                total++
+                console.log(`✅ ${place.name}`)
+              } else {
+                const err = await ins.text()
+                console.log(`❌ ${place.name}: ${err.slice(0, 100)}`)
+              }
+            }
+          }
+          console.log(`\nTotal imported: ${total}`)
+          EOF
+          node import.mjs
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
