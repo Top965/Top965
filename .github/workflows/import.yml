@@ -9,29 +9,27 @@ jobs:
     steps:
       - name: Run import
         run: |
-          node --version
           cat << 'EOF' > import.mjs
           const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
           const SUPABASE_URL = process.env.SUPABASE_URL
           const SUPABASE_KEY = process.env.SUPABASE_KEY
 
-const SEARCHES = [
-  { query: 'restaurant Kuwait City' },
-  { query: 'cafe Kuwait City' },
-  { query: 'frozen yogurt Kuwait' },
-  { query: 'bakery Kuwait' },
-  { query: 'burger Kuwait' },
-  { query: 'pizza Kuwait' },
-  { query: 'sushi Kuwait' },
-  { query: 'shawarma Kuwait' },
-  { query: 'gym Kuwait' },
-  { query: 'salon Kuwait' },
-  { query: 'bank Kuwait' },
-  { query: 'clinic Kuwait' },
-  { query: 'hotel Kuwait' },
-  { query: 'supermarket Kuwait' },
-  { query: 'pharmacy Kuwait' },
-],
+          const SEARCHES = [
+            { query: 'restaurant Kuwait City' },
+            { query: 'cafe Kuwait City' },
+            { query: 'frozen yogurt Kuwait' },
+            { query: 'bakery Kuwait' },
+            { query: 'burger Kuwait' },
+            { query: 'pizza Kuwait' },
+            { query: 'sushi Kuwait' },
+            { query: 'shawarma Kuwait' },
+            { query: 'gym Kuwait' },
+            { query: 'salon Kuwait' },
+            { query: 'bank Kuwait' },
+            { query: 'clinic Kuwait' },
+            { query: 'hotel Kuwait' },
+            { query: 'supermarket Kuwait' },
+            { query: 'pharmacy Kuwait' },
           ]
 
           function slugify(name) {
@@ -69,7 +67,7 @@ const SEARCHES = [
                   'Content-Type': 'application/json',
                   'apikey': SUPABASE_KEY,
                   'Authorization': `Bearer ${SUPABASE_KEY}`,
-                  'Prefer': 'return=minimal',
+                  'Prefer': 'return=minimal,resolution=ignore-duplicates',
                 },
                 body: JSON.stringify(record),
               })
