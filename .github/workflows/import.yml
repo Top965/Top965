@@ -15,17 +15,23 @@ jobs:
           const SUPABASE_URL = process.env.SUPABASE_URL
           const SUPABASE_KEY = process.env.SUPABASE_KEY
 
-          const SEARCHES = [
-            { query: 'restaurant Kuwait City' },
-            { query: 'cafe Kuwait City' },
-            { query: 'burger Kuwait' },
-            { query: 'pizza Kuwait' },
-            { query: 'shawarma Kuwait' },
-            { query: 'gym Kuwait' },
-            { query: 'salon Kuwait' },
-            { query: 'hotel Kuwait' },
-            { query: 'pharmacy Kuwait' },
-            { query: 'supermarket Kuwait' },
+const SEARCHES = [
+  { query: 'restaurant Kuwait City' },
+  { query: 'cafe Kuwait City' },
+  { query: 'frozen yogurt Kuwait' },
+  { query: 'bakery Kuwait' },
+  { query: 'burger Kuwait' },
+  { query: 'pizza Kuwait' },
+  { query: 'sushi Kuwait' },
+  { query: 'shawarma Kuwait' },
+  { query: 'gym Kuwait' },
+  { query: 'salon Kuwait' },
+  { query: 'bank Kuwait' },
+  { query: 'clinic Kuwait' },
+  { query: 'hotel Kuwait' },
+  { query: 'supermarket Kuwait' },
+  { query: 'pharmacy Kuwait' },
+],
           ]
 
           function slugify(name) {
