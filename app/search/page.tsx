@@ -54,10 +54,17 @@ export default function SearchPage() {
   const fetchPlaces = async (searchQuery = '', searchArea = 'All Areas', sortBy = 'google_score') => {
     setLoading(true)
     try {
-      let q = supabase
+      const { data, count, error } = await supabase
         .from('places')
-        .select('id, name_en, address_en, google_score, google_reviews, slug, is_verified_business', { count: 'exact' })
+        .select('id, name_en, google_score', { count: 'exact' })
         .eq('is_active', true)
+        .limit(5)
+      
+      console.log('DATA:', data)
+      console.log('COUNT:', count)
+      console.log('ERROR:', error)
+      setPlaces(data || [])
+      setTotal(count || 0)
 
       if (searchQuery) q = q.ilike('name_en', `%${searchQuery}%`)
       if (searchArea !== 'All Areas') q = q.ilike('address_en', `%${searchArea}%`)
