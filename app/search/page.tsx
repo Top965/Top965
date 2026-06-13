@@ -4,24 +4,6 @@ import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 
-const CATEGORIES = [
-  { id: 'restaurants', label: 'Restaurants', icon: '🍽️' },
-  { id: 'cafes', label: 'Cafes', icon: '☕' },
-  { id: 'frozen-yogurt', label: 'Frozen Yogurt', icon: '🍦' },
-  { id: 'bakeries', label: 'Bakeries', icon: '🥐' },
-  { id: 'burgers', label: 'Burgers', icon: '🍔' },
-  { id: 'pizza', label: 'Pizza', icon: '🍕' },
-  { id: 'sushi', label: 'Sushi', icon: '🍣' },
-  { id: 'shawarma', label: 'Shawarma', icon: '🌯' },
-  { id: 'gyms', label: 'Gyms', icon: '💪' },
-  { id: 'salons', label: 'Salons', icon: '✂️' },
-  { id: 'banks', label: 'Banks', icon: '🏦' },
-  { id: 'clinics', label: 'Clinics', icon: '🏥' },
-  { id: 'hotels', label: 'Hotels', icon: '🏨' },
-  { id: 'supermarkets', label: 'Supermarkets', icon: '🛒' },
-  { id: 'pharmacies', label: 'Pharmacies', icon: '💊' },
-]
-
 const AREAS = [
   'All Areas', 'Salmiya', 'Hawalli', 'Rumaithiya', 'Bayan', 'Mishref',
   'Kuwait City', 'Sharq', 'Jabriya', 'Surra', 'Salwa',
@@ -50,33 +32,27 @@ export default function SearchPage() {
   const [places, setPlaces] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
+  const [debugMsg, setDebugMsg] = useState('')
 
   const fetchPlaces = async (searchQuery = '', searchArea = 'All Areas', sortBy = 'google_score') => {
     setLoading(true)
     try {
       const { data, count, error } = await supabase
         .from('places')
-        .select('id, name_en, google_score', { count: 'exact' })
+        .select('id, name_en, address_en, google_score, google_reviews, slug, is_verified_business', { count: 'exact' })
         .eq('is_active', true)
-        .limit(5)
-      
+        .order('google_score', { ascending: false, nullsFirst: false })
+        .limit(50)
+
       console.log('DATA:', data)
       console.log('COUNT:', count)
       console.log('ERROR:', error)
+      setDebugMsg(`count:${count} error:${error?.message || 'none'} rows:${data?.length}`)
       setPlaces(data || [])
       setTotal(count || 0)
-
-      if (searchQuery) q = q.ilike('name_en', `%${searchQuery}%`)
-      if (searchArea !== 'All Areas') q = q.ilike('address_en', `%${searchArea}%`)
-      if (sortBy === 'google_score') q = q.order('google_score', { ascending: false, nullsFirst: false })
-      else if (sortBy === 'google_reviews') q = q.order('google_reviews', { ascending: false })
-      else q = q.order('created_at', { ascending: false })
-
-      const { data, count } = await q.limit(50)
-      setPlaces(data || [])
-      setTotal(count || 0)
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
+      setDebugMsg('EXCEPTION: ' + err.message)
       setPlaces([])
     }
     setLoading(false)
@@ -118,7 +94,7 @@ export default function SearchPage() {
         .results-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
         .results-title span { color: var(--gold); }
         .results-count { font-size: 13px; color: var(--muted); margin-top: 2px; }
-        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-bar { display: flex; gap: 8px; }
         .filter-select { padding: 8px 14px; background: var(--dark3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 12px; outline: none; cursor: pointer; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
         .card { background: var(--dark3); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.2s; text-decoration: none; display: block; }
@@ -133,12 +109,7 @@ export default function SearchPage() {
         .empty { text-align: center; padding: 80px 20px; color: var(--muted); }
         .empty-icon { font-size: 48px; margin-bottom: 16px; }
         .empty-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--text); margin-bottom: 8px; }
-        @media (max-width: 600px) {
-          .nav { padding: 0 16px; }
-          .search-hero { padding: 20px 16px; }
-          .results { padding: 20px 16px; }
-          .search-bar { flex-direction: column; }
-        }
+        .debug { background: #1a1a00; border: 1px solid #444; color: #ff0; padding: 12px; margin: 16px 32px; border-radius: 8px; font-size: 13px; font-family: monospace; }
       `}</style>
 
       <nav className="nav">
@@ -163,6 +134,8 @@ export default function SearchPage() {
           <button className="search-btn" onClick={handleSearch}>Search →</button>
         </div>
       </div>
+
+      {debugMsg && <div className="debug">DEBUG: {debugMsg}</div>}
 
       <div className="results">
         <div className="results-header">
