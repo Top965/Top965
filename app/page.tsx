@@ -1,97 +1,179 @@
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
-async function getTopPlaces() {
-  const { data } = await supabase
-    .from('places')
-    .select('id, name_en, address_en, google_score, google_reviews, slug')
-    .eq('is_active', true)
-    .order('google_score', { ascending: false })
-    .limit(6)
-  return data || []
-}
-
-export default async function HomePage() {
-  const places = await getTopPlaces()
-
+export default function HomePage() {
   return (
-    <div style={{ background: '#FAF6EE', minHeight: '100vh' }}>
-      <nav style={{
-        background: '#0F0E0A', padding: '0 40px', height: '68px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        position: 'sticky', top: 0, zIndex: 100,
-      }}>
-        <div style={{ fontFamily: 'serif', fontSize: '22px', fontWeight: 900, color: '#C8963E' }}>
-          Top<span style={{ color: '#fff' }}>965</span>
-        </div>
-        <Link href="/auth" style={{
-          border: '1px solid rgba(200,150,62,0.4)', color: '#E8B86D',
-          padding: '8px 18px', borderRadius: '8px', textDecoration: 'none', fontSize: '13px',
-        }}>Sign In</Link>
-      </nav>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body { background: #0A0A0A; font-family: 'DM Sans', sans-serif; }
 
-      <section style={{ background: '#0F0E0A', padding: '100px 40px', textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'serif', fontSize: '64px', fontWeight: 900, color: '#fff', marginBottom: '20px' }}>
-          Discover the <span style={{ color: '#C8963E' }}>Best</span> of Kuwait
-        </h1>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '18px', marginBottom: '40px' }}>
-          Real reviews from real visits
-        </p>
-        <Link href="/search" style={{
-          background: '#C8963E', color: '#0F0E0A', textDecoration: 'none',
-          padding: '16px 40px', borderRadius: '12px', fontWeight: 700, fontSize: '16px',
-        }}>
-          Explore Kuwait →
-        </Link>
-      </section>
+        .page { min-height: 100vh; display: flex; flex-direction: column; }
 
-      <section style={{ padding: '60px 40px', maxWidth: '1200px', margin: '0 auto' }}>
-        <h2 style={{ fontFamily: 'serif', fontSize: '32px', fontWeight: 900, color: '#0F0E0A', marginBottom: '8px' }}>
-          Top Rated Places
-        </h2>
-        <p style={{ color: '#888', marginBottom: '40px' }}>Highest rated in Kuwait</p>
+        /* NAV */
+        .nav {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          height: 64px; padding: 0 40px;
+          display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo {
+          font-family: 'Playfair Display', serif;
+          font-size: 22px; font-weight: 900;
+          color: #E8B94F; text-decoration: none; letter-spacing: -0.5px;
+        }
+        .nav-signin {
+          padding: 8px 20px;
+          border: 1px solid rgba(232,185,79,0.35);
+          color: #E8B94F; border-radius: 8px;
+          text-decoration: none; font-size: 13px; font-weight: 500;
+          transition: background 0.2s, border-color 0.2s;
+        }
+        .nav-signin:hover { background: rgba(232,185,79,0.08); border-color: rgba(232,185,79,0.6); }
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
-          {places.map((place) => (
-            <Link key={place.id} href={`/place/${place.slug}`} style={{ textDecoration: 'none' }}>
-              <div style={{
-                background: '#fff', borderRadius: '16px', padding: '24px',
-                border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer',
-                transition: 'transform 0.2s', display: 'block',
-              }}>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: '#0F0E0A', marginBottom: '8px' }}>
-                  {place.name_en}
-                </div>
-                <div style={{ color: '#888', fontSize: '14px', marginBottom: '12px' }}>
-                  {place.address_en?.split(',').slice(0, 2).join(',')}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: '#C8963E', fontWeight: 700, fontSize: '16px' }}>
-                    ★ {place.google_score}
-                  </span>
-                  <span style={{ color: '#aaa', fontSize: '13px' }}>
-                    ({place.google_reviews?.toLocaleString()} reviews on Google)
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+        /* HERO */
+        .hero {
+          flex: 1; display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          text-align: center; padding: 40px;
+          min-height: 100vh;
+          position: relative; overflow: hidden;
+        }
 
-      <footer style={{ background: '#0F0E0A', padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontFamily: 'serif', fontSize: '24px', fontWeight: 900, color: '#C8963E' }}>
-          Top965
-        </div>
-        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', marginTop: '8px' }}>
-          Made with love in Kuwait
-        </p>
-      </footer>
-    </div>
+        /* Ambient glow */
+        .hero::before {
+          content: '';
+          position: absolute; top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          width: 600px; height: 400px;
+          background: radial-gradient(ellipse, rgba(232,185,79,0.07) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        /* Gold top line */
+        .hero-eyebrow {
+          display: flex; align-items: center; gap: 12px;
+          margin-bottom: 32px;
+          color: #E8B94F; font-size: 11px; font-weight: 500;
+          letter-spacing: 3px; text-transform: uppercase;
+        }
+        .hero-eyebrow::before, .hero-eyebrow::after {
+          content: '';
+          width: 40px; height: 1px;
+          background: linear-gradient(90deg, transparent, #E8B94F);
+        }
+        .hero-eyebrow::after { background: linear-gradient(90deg, #E8B94F, transparent); }
+
+        .hero-title {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(42px, 7vw, 88px);
+          font-weight: 900; line-height: 1.05;
+          color: #F0EDE6; margin-bottom: 24px;
+          letter-spacing: -2px;
+        }
+        .hero-title em {
+          color: #E8B94F; font-style: italic;
+        }
+
+        .hero-sub {
+          font-size: clamp(14px, 1.5vw, 17px);
+          color: rgba(240,237,230,0.4);
+          font-weight: 300; letter-spacing: 0.3px;
+          margin-bottom: 52px; max-width: 380px;
+        }
+
+        .hero-btn {
+          display: inline-flex; align-items: center; gap: 10px;
+          padding: 18px 44px;
+          background: #E8B94F; color: #0A0A0A;
+          border-radius: 50px; text-decoration: none;
+          font-size: 15px; font-weight: 700;
+          letter-spacing: 0.3px;
+          transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+          box-shadow: 0 0 0 0 rgba(232,185,79,0);
+        }
+        .hero-btn:hover {
+          transform: translateY(-2px);
+          background: #F0C55A;
+          box-shadow: 0 8px 40px rgba(232,185,79,0.25);
+        }
+        .hero-btn-arrow {
+          font-size: 18px; transition: transform 0.2s;
+        }
+        .hero-btn:hover .hero-btn-arrow { transform: translateX(4px); }
+
+        /* Stats row */
+        .hero-stats {
+          position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%);
+          display: flex; gap: 48px; align-items: center;
+        }
+        .stat { text-align: center; }
+        .stat-num {
+          font-family: 'Playfair Display', serif;
+          font-size: 22px; font-weight: 700; color: #E8B94F;
+        }
+        .stat-label { font-size: 11px; color: rgba(240,237,230,0.3); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+        .stat-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.07); }
+
+        /* FOOTER */
+        .footer {
+          text-align: center; padding: 24px;
+          border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .footer-text { font-size: 11px; color: rgba(240,237,230,0.2); letter-spacing: 1px; }
+
+        @media (max-width: 600px) {
+          .nav { padding: 0 20px; }
+          .hero { padding: 80px 24px 120px; }
+          .hero-stats { gap: 28px; bottom: 32px; }
+          .stat-num { font-size: 18px; }
+        }
+      `}</style>
+
+      <div className="page">
+        <nav className="nav">
+          <Link href="/" className="nav-logo">Top965</Link>
+          <Link href="/auth" className="nav-signin">Sign In</Link>
+        </nav>
+
+        <section className="hero">
+          <div className="hero-eyebrow">Kuwait's Discovery Platform</div>
+
+          <h1 className="hero-title">
+            Discover the<br /><em>Best</em> of Kuwait
+          </h1>
+
+          <p className="hero-sub">
+            Real reviews from real people who actually visited.
+          </p>
+
+          <Link href="/search" className="hero-btn">
+            Explore Kuwait
+            <span className="hero-btn-arrow">→</span>
+          </Link>
+
+          <div className="hero-stats">
+            <div className="stat">
+              <div className="stat-num">500+</div>
+              <div className="stat-label">Places</div>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat">
+              <div className="stat-num">Kuwait</div>
+              <div className="stat-label">Only</div>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat">
+              <div className="stat-num">Real</div>
+              <div className="stat-label">Reviews</div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="footer">
+          <div className="footer-text">© 2026 TOP965 · MADE IN KUWAIT</div>
+        </footer>
+      </div>
+    </>
   )
 }
