@@ -14,24 +14,17 @@ const AREAS = [
 ]
 
 const CATEGORIES = [
-  { label: 'Restaurants', emoji: '🍽️', key: 'restaurant' },
-  { label: 'Cafes', emoji: '☕', key: 'cafe' },
-  { label: 'Frozen Yogurt', emoji: '🍦', key: 'frozen yogurt' },
-  { label: 'Bakeries', emoji: '🥐', key: 'bakery' },
-  { label: 'Burgers', emoji: '🍔', key: 'burger' },
-  { label: 'Pizza', emoji: '🍕', key: 'pizza' },
-  { label: 'Sushi', emoji: '🍣', key: 'sushi' },
-  { label: 'Shawarma', emoji: '🌯', key: 'shawarma' },
-  { label: 'Gyms', emoji: '💪', key: 'gym' },
-  { label: 'Salons', emoji: '💇', key: 'salon' },
-  { label: 'Banks', emoji: '🏦', key: 'bank' },
-  { label: 'Clinics', emoji: '🏥', key: 'clinic' },
-  { label: 'Chalets', emoji: '🏖️', key: 'chalet' },
-  { label: 'Hotels', emoji: '🏨', key: 'hotel' },
-  { label: 'Supermarkets', emoji: '🛒', key: 'supermarket' },
-  { label: 'Pharmacies', emoji: '💊', key: 'pharmacy' },
-  { label: 'Schools', emoji: '🎓', key: 'school' },
-  { label: 'Gas Stations', emoji: '⛽', key: 'gas station' },
+  { label: 'Restaurants', emoji: '🍽️', key: 'restaurant', id: '6aeefe1d-bc07-4cbb-a08c-cad2f6265ae4' },
+  { label: 'Cafes', emoji: '☕', key: 'cafe', id: 'fe8fe534-590b-4720-b360-afc1d999a5c8' },
+  { label: 'Fast Food', emoji: '🍔', key: 'fastfood', id: '30db5faf-c7f2-428a-bf1c-4da11d899b3f' },
+  { label: 'Asian', emoji: '🍣', key: 'asian', id: '3d878bdd-2651-478f-80fe-5db4c73a2b52' },
+  { label: 'Desserts', emoji: '🍦', key: 'dessert', id: 'a342f804-572e-41d2-a5b8-14faae1e3ada' },
+  { label: 'Healthy', emoji: '🥗', key: 'healthy', id: 'e5899f7c-f61a-44df-9963-d4776d2288a0' },
+  { label: 'Gyms', emoji: '💪', key: 'gym', id: '17b006ca-9551-45e2-99eb-b41b4277d318' },
+  { label: 'Salons', emoji: '💇', key: 'salon', id: '27b356bd-a857-4002-b41a-92d9fde78672' },
+  { label: 'Clinics', emoji: '🏥', key: 'clinic', id: '97b642f2-ff2e-42dc-9787-98995e03acd1' },
+  { label: 'Shopping', emoji: '🛒', key: 'shopping', id: 'c3d89c10-7e2c-45bb-9be5-a6603ccd3374' },
+  { label: 'Entertainment', emoji: '🎭', key: 'entertainment', id: '4768b6eb-859a-4329-bc8a-85b865850364' },
 ]
 
 // Clearbit logo domains for known brands
