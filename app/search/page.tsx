@@ -146,7 +146,8 @@ export default function SearchPage() {
 
       if (searchQuery.trim()) q = q.ilike('name_en', `%${searchQuery.trim()}%`)
       if (searchArea !== 'All Areas') q = q.ilike('address_en', `%${searchArea}%`)
-      if (searchCategory) q = q.ilike('name_en', `%${searchCategory}%`)
+      const catObj = CATEGORIES.find(c => c.key === searchCategory)
+      if (catObj?.id) q = q.eq('category_id', catObj.id)
 
       const orderCol = sortBy === 'google_reviews' ? 'google_reviews' : sortBy === 'created_at' ? 'created_at' : 'google_score'
       q = q.order(orderCol, { ascending: false, nullsFirst: false })
