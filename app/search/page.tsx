@@ -167,12 +167,12 @@ export default function SearchPage() {
   const fetchDiscoverData = async () => {
     setLoading(true)
     const result: Record<string, any[]> = {}
-    for (const cat of CATEGORIES.slice(0, 8)) {
+    for (const cat of CATEGORIES) {
       const { data } = await supabase
         .from('places')
         .select('id, name_en, address_en, google_score, google_reviews, slug, photos')
         .eq('is_active', true)
-        .ilike('name_en', `%${cat.key}%`)
+        .eq('category_id', cat.id)
         .order('google_score', { ascending: false, nullsFirst: false })
         .limit(5)
       if (data && data.length > 0) result[cat.key] = data
