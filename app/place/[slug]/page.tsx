@@ -1,5 +1,6 @@
 // app/place/[slug]/page.tsx
-import { createClient } from '@supabase/supabase-js'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import PlaceTabs from './PlaceTabs'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -39,10 +40,6 @@ function getClearbitLogo(name: string): string | null {
   }
   return null
 }
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 async function getPlace(slug: string) {
   const { data } = await supabase
