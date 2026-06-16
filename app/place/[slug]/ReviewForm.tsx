@@ -82,8 +82,8 @@ export default function ReviewForm({ placeId, placeName, userId }: {
 
       if (insertError) {
   if (insertError.code === '23505') {
-    setError('You have already reviewed this place. Only one review per place is allowed.')
-  } else {
+  setError('You already reviewed this place today. Come back after 24 hours to share your next experience!')
+} else {
     setError(insertError.message)
   }
   setLoading(false)
