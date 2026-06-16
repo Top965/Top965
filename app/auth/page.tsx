@@ -64,7 +64,8 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (error) return show(error.message, 'error')
-    router.push('/')
+    router.refresh()
+    router.push('search')
   }
 
   const handleStep1 = () => {
