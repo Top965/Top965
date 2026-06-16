@@ -81,10 +81,14 @@ export default function ReviewForm({ placeId, placeName, userId }: {
         })
 
       if (insertError) {
-        setError(insertError.message)
-        setLoading(false)
-        return
-      }
+  if (insertError.code === '23505') {
+    setError('You have already reviewed this place. Only one review per place is allowed.')
+  } else {
+    setError(insertError.message)
+  }
+  setLoading(false)
+  return
+}
 
       // Refresh the page to show the new review
       router.refresh()
