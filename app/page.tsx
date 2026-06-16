@@ -137,7 +137,13 @@ const userId = session?.user?.id || ''
       <div className="page">
         <nav className="nav">
           <Link href="/" className="nav-logo">Top965</Link>
-          <Link href="/auth" className="nav-signin">Sign In</Link>
+          {userId ? (
+  <Link href="/profile" className="nav-signin" style={{ borderColor: 'rgba(232,185,79,0.35)', color: '#E8B94F' }}>
+    My Profile
+  </Link>
+) : (
+  <Link href="/auth" className="nav-signin">Sign In</Link>
+)}
         </nav>
 
         <section className="hero">
