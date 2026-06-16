@@ -184,7 +184,13 @@ export default async function PlacePage({ params }: { params: { slug: string } }
           <Link href="/search" className="nav-back">← Back</Link>
           <Link href="/" className="nav-logo">Top965</Link>
         </div>
-        <Link href="/auth" className="nav-btn">Sign In</Link>
+        {userId ? (
+  <Link href="/profile" className="nav-btn" style={{ background: 'transparent', border: '1px solid rgba(232,185,79,0.35)', color: '#E8B94F' }}>
+    My Profile
+  </Link>
+) : (
+  <Link href="/auth" className="nav-btn">Sign In</Link>
+)}
       </nav>
 
       {/* COVER */}
