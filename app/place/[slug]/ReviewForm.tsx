@@ -88,7 +88,7 @@ export default function ReviewForm({ placeId, placeName, userId }: {
 
       // Refresh the page to show the new review
       router.refresh()
-      router.push(`/place/${placeId}?reviewed=true`)
+      window.scrollTo(0, 0)
     } catch (err: any) {
       setError(err.message)
       setLoading(false)
