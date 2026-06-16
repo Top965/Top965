@@ -121,6 +121,13 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function SearchPage() {
   const supabase = createClientComponentClient()
+  const [userId, setUserId] = useState('')
+
+useEffect(() => {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    setUserId(session?.user?.id || '')
+  })
+}, [])
   const [query, setQuery] = useState('')
   const [area, setArea] = useState('All Areas')
   const [category, setCategory] = useState('')
