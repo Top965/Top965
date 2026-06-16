@@ -1,5 +1,6 @@
 'use client'
 
+import ReviewForm from './ReviewForm'
 import { useState } from 'react'
 import Link from 'next/link'
 
@@ -23,12 +24,11 @@ export default function PlaceTabs({ place, reviews }: { place: any, reviews: any
 
       {activeTab === 'reviews' ? (
         <div>
-          <div className="review-cta">
-            <div className="review-cta-icon">⭐</div>
-            <div className="review-cta-title">Be the first to review</div>
-            <div className="review-cta-sub">Share your experience at {place.name_en}</div>
-            <Link href="/auth" className="btn-primary">Write a Review</Link>
-          </div>
+          <ReviewForm 
+  placeId={place.id} 
+  placeName={place.name_en} 
+  userId="" 
+/>
 
           {reviews.length === 0 && (
             <div className="empty-state">
