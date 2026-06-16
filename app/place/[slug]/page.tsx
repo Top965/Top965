@@ -51,7 +51,7 @@ async function getPlace(supabase: any, slug: string) {
   return data
 }
 
-async function getReviews(placeId: string) {
+async function getReviews(supabase: any, placeId: string) {
   const { data } = await supabase
     .from('reviews')
     .select('*, profiles(username, avatar_url)')
@@ -73,10 +73,10 @@ function Stars({ rating, size = 14 }: { rating: number, size?: number }) {
 
 export default async function PlacePage({ params }: { params: { slug: string } }) {
   const supabase = createServerComponentClient({ cookies })
-  const place = await getPlace(params.slug)
+  const place = await getPlace(supabase, params.slug)
   if (!place) notFound()
 
-  const reviews = await getReviews(place.id)
+  const reviews = await getReviews(supabase, place.id)
   const { data: { session } } = await supabase.auth.getSession()
   const userId = session?.user?.id || ''
   const initial = place.name_en?.charAt(0).toUpperCase()
