@@ -4,7 +4,7 @@ import ReviewForm from './ReviewForm'
 import { useState } from 'react'
 import Link from 'next/link'
 
-export default function PlaceTabs({ place, reviews }: { place: any, reviews: any[] }) {
+export default function PlaceTabs({ place, reviews, userId }: { place: any, reviews: any[], userId: string }) {
   const [activeTab, setActiveTab] = useState('reviews')
 
   return (
