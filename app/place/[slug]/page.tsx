@@ -3,7 +3,42 @@ import { createClient } from '@supabase/supabase-js'
 import PlaceTabs from './PlaceTabs'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+const BRAND_LOGOS: Record<string, string> = {
+  'starbucks': 'starbucks.com',
+  'mcdonald': 'mcdonalds.com',
+  'kfc': 'kfc.com',
+  'pizza hut': 'pizzahut.com',
+  'burger king': 'burgerking.com',
+  'subway': 'subway.com',
+  'tim hortons': 'timhortons.com',
+  'costa': 'costa.co.uk',
+  'caribou': 'cariboucoffee.com',
+  'hardee': 'hardees.com',
+  'popeyes': 'popeyes.com',
+  'shake shack': 'shakeshack.com',
+  'five guys': 'fiveguys.com',
+  'domino': 'dominos.com',
+  'papa john': 'papajohns.com',
+  'baskin': 'baskinrobbins.com',
+  'dunkin': 'dunkindonuts.com',
+  'krispy kreme': 'krispykreme.com',
+  'cinnabon': 'cinnabon.com',
+  'dairy queen': 'dairyqueen.com',
+  'fitness first': 'fitnessfirst.com',
+  'pizza express': 'pizzaexpress.com',
+  'applebee': 'applebees.com',
+  'ihop': 'ihop.com',
+}
 
+function getClearbitLogo(name: string): string | null {
+  const lower = name.toLowerCase()
+  for (const [brand, domain] of Object.entries(BRAND_LOGOS)) {
+    if (lower.includes(brand)) {
+      return `https://logo.clearbit.com/${domain}`
+    }
+  }
+  return null
+}
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -155,11 +190,16 @@ export default async function PlacePage({ params }: { params: { slug: string } }
 
       {/* COVER */}
       <div className="cover" style={{ background: `linear-gradient(135deg, ${bgColor} 0%, #0A0A0A 100%)` }}>
-        {place.cover_image_url ? (
-          <img src={place.cover_image_url} alt={place.name_en} className="cover-img" />
-        ) : (
-          <span className="cover-letter">{initial}</span>
-        )}
+  {place.cover_image_url ? (
+    <img src={place.cover_image_url} alt={place.name_en} className="cover-img" />
+  ) : getClearbitLogo(place.name_en) ? (
+    <div style={{ background: '#fff', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+      <img src={getClearbitLogo(place.name_en)!} alt={place.name_en}
+        style={{ maxWidth: '60%', maxHeight: '60%', objectFit: 'contain' }} />
+    </div>
+  ) : (
+    <span className="cover-letter">{initial}</span>
+  )}
         <div className="cat-badge">🍽️ {place.category_id ? 'Restaurant' : 'Place'}</div>
       </div>
 
