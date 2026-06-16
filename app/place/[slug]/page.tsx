@@ -1,5 +1,6 @@
 // app/place/[slug]/page.tsx
 import { createClient } from '@supabase/supabase-js'
+import PlaceTabs from './PlaceTabs'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -219,47 +220,7 @@ export default async function PlacePage({ params }: { params: { slug: string } }
         <div className="layout">
           {/* MAIN */}
           <div className="main">
-            <div className="tabs">
-              <button className="tab active">Reviews ({place.review_count || 0})</button>
-              <button className="tab">Info</button>
-            </div>
-
-            {/* Review CTA */}
-            <div className="review-cta">
-              <div className="review-cta-icon">⭐</div>
-              <div className="review-cta-title">Be the first to review</div>
-              <div className="review-cta-sub">
-                Share your experience at {place.name_en}
-              </div>
-              <Link href="/auth" className="btn-primary">Write a Review</Link>
-            </div>
-
-            {reviews.length === 0 && (
-              <div className="empty-state">
-                <div className="empty-icon">💬</div>
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, color: '#F0EDE6', marginBottom: 6 }}>
-                  No reviews yet
-                </div>
-                <div style={{ fontSize: 13 }}>Be the first Kuwaiti to rate this place</div>
-              </div>
-            )}
-
-            {reviews.map((review: any) => (
-              <div key={review.id} className="review-card">
-                <div className="review-header">
-                  <div>
-                    <span className="reviewer">{review.profiles?.username || 'Anonymous'}</span>
-                    <span className="review-date" style={{ marginLeft: 8 }}>
-                      {new Date(review.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <Stars rating={review.overall_rating} size={12} />
-                </div>
-                {review.review_text && (
-                  <div className="review-text">{review.review_text}</div>
-                )}
-              </div>
-            ))}
+            <PlaceTabs place={place} reviews={reviews} />
           </div>
 
           {/* SIDEBAR */}
