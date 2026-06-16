@@ -79,7 +79,7 @@ export default function ProfilePage() {
               { label: 'Nationality', value: user?.user_metadata?.nationality || '—' },
               { label: 'Area', value: user?.user_metadata?.area || '—' },
               { label: 'Age Range', value: user?.user_metadata?.age_range || '—' },
-              { label: 'Member Since', value: new Date(user?.created_at).toLocaleDateString() },
+              { label: 'Member Since', value: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-GB') : '—' },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: 13 }}>
                 <span style={{ color: '#666' }}>{label}</span>
