@@ -24,11 +24,20 @@ export default function PlaceTabs({ place, reviews, userId }: { place: any, revi
 
       {activeTab === 'reviews' ? (
         <div>
-          <ReviewForm 
-  placeId={place.id} 
-  placeName={place.name_en} 
-  userId="" 
-/>
+      {userId ? (
+  <ReviewForm 
+    placeId={place.id} 
+    placeName={place.name_en} 
+    userId={userId} 
+  />
+) : (
+  <div className="review-cta">
+    <div className="review-cta-icon">⭐</div>
+    <div className="review-cta-title">Sign in to write a review</div>
+    <div className="review-cta-sub">Join Top965 to share your experience</div>
+    <Link href="/auth" className="btn-primary">Sign In / Sign Up</Link>
+  </div>
+)}
 
           {reviews.length === 0 && (
             <div className="empty-state">
