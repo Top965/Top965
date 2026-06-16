@@ -79,7 +79,8 @@ export default async function PlacePage({ params }: { params: { slug: string } }
   if (!place) notFound()
 
   const reviews = await getReviews(place.id)
-
+  const { data: { session } } = await supabase.auth.getSession()
+  const userId = session?.user?.id || ''
   const initial = place.name_en?.charAt(0).toUpperCase()
   const colors = ['#1a1a2e', '#16213e', '#1a2744', '#0d1b2a', '#1c1c2e']
   const bgColor = colors[place.name_en?.charCodeAt(0) % colors.length]
@@ -260,7 +261,7 @@ export default async function PlacePage({ params }: { params: { slug: string } }
         <div className="layout">
           {/* MAIN */}
           <div className="main">
-            <PlaceTabs place={place} reviews={reviews} />
+            <PlaceTabs place={place} reviews={reviews} userId={userId} />
           </div>
 
           {/* SIDEBAR */}
