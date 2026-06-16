@@ -41,7 +41,7 @@ function getClearbitLogo(name: string): string | null {
   return null
 }
 
-async function getPlace(slug: string) {
+async function getPlace(supabase: any, slug: string) {
   const { data } = await supabase
     .from('places')
     .select('*')
@@ -72,6 +72,7 @@ function Stars({ rating, size = 14 }: { rating: number, size?: number }) {
 }
 
 export default async function PlacePage({ params }: { params: { slug: string } }) {
+  const supabase = createServerComponentClient({ cookies })
   const place = await getPlace(params.slug)
   if (!place) notFound()
 
