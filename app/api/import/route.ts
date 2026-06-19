@@ -42,7 +42,7 @@ async function fetchPlaceDetails(placeId: string, logs: string[]) {
     return {
       phone: result.formatted_phone_number || null,
       website: result.website || null,
-      hours: result.opening_hours?.weekday_text || null,
+      opening_hours: result.opening_hours?.weekday_text || null,
       photos: photoRefs.map(buildPhotoUrl),
     }
   } catch (err: unknown) {
@@ -114,7 +114,7 @@ export async function GET(request: Request) {
             google_reviews: place.user_ratings_total || 0,
             phone: details?.phone || null,
             website: details?.website || null,
-            hours: details?.hours || null,
+            opening_hours: details?.opening_hours || null,
             cover_image_url: photos[0] || null,
             photos: photos.length > 0 ? photos : null,
             avg_rating: 0,
