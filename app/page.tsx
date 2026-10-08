@@ -108,7 +108,7 @@ export default function HomePage() {
       <div className="page">
         <nav className="nav">
           <Link href="/" className="nav-logo">Top965</Link>
-          <Link href="/auth" className="nav-signin">Sign In</Link>
+          <Link href="/auth/login" className="nav-signin">Sign In</Link>
         </nav>
 
         <section className="hero">
