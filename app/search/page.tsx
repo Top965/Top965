@@ -241,7 +241,7 @@ const handleCuisineClick = (keyword: string) => {
 }
   const handleSearch = () => {
     setView('grid')
-    fetchPlaces(query, area, category, sort,cuisine
+    fetchPlaces(query, area, category, sort, cuisine)
   }
 
   const activeCatLabel = CATEGORIES.find(c => c.key === category)?.label
