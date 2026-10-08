@@ -12,6 +12,28 @@ const AREAS = [
   'Sabah Al Salem', 'Mubarak Al Kabeer', 'Qurain',
   'Jahra', 'Egaila', 'Messila',
 ]
+const CUISINES = [
+  { label: 'Burgers', emoji: '🍔', keyword: 'burger' },
+  { label: 'Shawarma', emoji: '🌯', keyword: 'shawarma' },
+  { label: 'Grills', emoji: '🔥', keyword: 'grill' },
+  { label: 'Kuwaiti', emoji: '🇰🇼', keyword: 'kuwaiti' },
+  { label: 'Machboos', emoji: '🍛', keyword: 'machboos' },
+  { label: 'Pizza', emoji: '🍕', keyword: 'pizza' },
+  { label: 'Seafood', emoji: '🦞', keyword: 'seafood' },
+  { label: 'Indian', emoji: '🍲', keyword: 'indian' },
+  { label: 'Sushi', emoji: '🍣', keyword: 'sushi' },
+  { label: 'Breakfast', emoji: '🍳', keyword: 'breakfast' },
+  { label: 'Biryani', emoji: '🍚', keyword: 'biryani' },
+  { label: 'Pasta', emoji: '🍝', keyword: 'pasta' },
+  { label: 'Fried Chicken', emoji: '🍗', keyword: 'chicken' },
+  { label: 'Sandwiches', emoji: '🥪', keyword: 'sandwich' },
+  { label: 'Steaks', emoji: '🥩', keyword: 'steak' },
+  { label: 'Lebanese', emoji: '🫙', keyword: 'lebanese' },
+  { label: 'BBQ', emoji: '🍖', keyword: 'bbq' },
+  { label: 'Waffles', emoji: '🧇', keyword: 'waffle' },
+  { label: 'Donuts', emoji: '🍩', keyword: 'donut' },
+  { label: 'Crepes', emoji: '🥞', keyword: 'crepe' },
+]
 
 const CATEGORIES = [
   { label: 'Restaurants', emoji: '🍽️', key: 'restaurant', id: '6aeefe1d-bc07-4cbb-a08c-cad2f6265ae4' },
@@ -131,6 +153,7 @@ useEffect(() => {
   const [query, setQuery] = useState('')
   const [area, setArea] = useState('All Areas')
   const [category, setCategory] = useState('')
+  const [cuisine, setCuisine] = useState('')
   const [sort, setSort] = useState('google_score')
   const [view, setView] = useState<'discover' | 'grid'>('discover')
   const [places, setPlaces] = useState<any[]>([])
@@ -141,7 +164,7 @@ useEffect(() => {
   // Fetch for grid view
   const fetchPlaces = async (
     searchQuery = '', searchArea = 'All Areas',
-    searchCategory = '', sortBy = 'google_score'
+    searchCategory = '', sortBy = 'google_score',searchCuisine = ''
   ) => {
     setLoading(true)
     try {
@@ -155,6 +178,8 @@ useEffect(() => {
       if (searchArea !== 'All Areas') q = q.ilike('address_en', `%${searchArea}%`)
       const catObj = CATEGORIES.find(c => c.key === searchCategory)
       if (catObj?.id) q = q.eq('category_id', catObj.id)
+            const cuisineObj = CUISINES.find(c => c.keyword === searchCuisine)
+      if (cuisineObj) q = q.ilike('name_en', `%${cuisineObj.keyword}%`)
 
       const orderCol = sortBy === 'google_reviews' ? 'google_reviews' : sortBy === 'created_at' ? 'created_at' : 'google_score'
       q = q.order(orderCol, { ascending: false, nullsFirst: false })
@@ -207,13 +232,20 @@ useEffect(() => {
       fetchDiscoverData()
     }
   }
-
+const handleCuisineClick = (keyword: string) => {
+    const newCuisine = cuisine === keyword ? '' : keyword
+    setCuisine(newCuisine)
+    setCategory('')
+    setView('grid')
+    fetchPlaces(query, area, '', sort, newCuisine)
+}
   const handleSearch = () => {
     setView('grid')
-    fetchPlaces(query, area, category, sort)
+    fetchPlaces(query, area, category, sort,cuisine
   }
 
   const activeCatLabel = CATEGORIES.find(c => c.key === category)?.label
+  const activeCuisineLabel = CUISINES.find(c => c.keyword === cuisine)?.label
 
   return (
     <>
@@ -244,6 +276,14 @@ useEffect(() => {
         .cat-pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; background: var(--dark3); border: 1px solid var(--border); border-radius: 30px; font-size: 12px; color: var(--text); cursor: pointer; transition: all 0.15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
         .cat-pill:hover { border-color: rgba(232,185,79,0.4); background: rgba(232,185,79,0.05); }
         .cat-pill.active { background: var(--gold-dim); border-color: var(--border-gold); color: var(--gold); font-weight: 600; }
+        .cuisine-row { display: flex; gap: 16px; overflow-x: auto; padding: 14px 0 16px; scrollbar-width: none; }
+.cuisine-row::-webkit-scrollbar { display: none; }
+.cuisine-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0; }
+.cuisine-circle { width: 64px; height: 64px; border-radius: 50%; background: var(--dark3); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 26px; transition: all 0.15s; }
+.cuisine-chip:hover .cuisine-circle { border-color: rgba(232,185,79,0.4); background: rgba(232,185,79,0.05); }
+.cuisine-chip.active .cuisine-circle { border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 0 3px rgba(232,185,79,0.15); }
+.cuisine-label { font-size: 11px; color: var(--muted); font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+.cuisine-chip.active .cuisine-label { color: var(--gold); font-weight: 600; }
         .results-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 14px; }
         .results-count { font-size: 12px; color: var(--muted); }
         .view-toggle { display: flex; background: var(--dark3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
@@ -303,7 +343,7 @@ useEffect(() => {
     My Profile
   </Link>
 ) : (
-  <Link href="/auth" className="nav-btn">Sign In</Link>
+  <Link href="/auth/login" className="nav-btn">Sign In</Link>
 )}
       </nav>
 
@@ -329,6 +369,19 @@ useEffect(() => {
               {cat.label}
             </button>
           ))}
+        </div>
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 4 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingTop: 10 }}>Cuisine</div>
+          <div className="cuisine-row">
+            {CUISINES.map(c => (
+              <button key={c.keyword}
+                className={`cuisine-chip${cuisine === c.keyword ? ' active' : ''}`}
+                onClick={() => handleCuisineClick(c.keyword)}>
+                <div className="cuisine-circle">{c.emoji}</div>
+                <span className="cuisine-label">{c.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="results-bar">
