@@ -12,6 +12,7 @@ const AREAS = [
   'Sabah Al Salem', 'Mubarak Al Kabeer', 'Qurain',
   'Jahra', 'Egaila', 'Messila',
 ]
+
 const CUISINES = [
   { label: 'Burgers', emoji: '🍔', keyword: 'burger' },
   { label: 'Shawarma', emoji: '🌯', keyword: 'shawarma' },
@@ -49,7 +50,6 @@ const CATEGORIES = [
   { label: 'Entertainment', emoji: '🎭', key: 'entertainment', id: '4768b6eb-859a-4329-bc8a-85b865850364' },
 ]
 
-// Clearbit logo domains for known brands
 const BRAND_LOGOS: Record<string, string> = {
   'starbucks': 'starbucks.com',
   'mcdonald': 'mcdonalds.com',
@@ -145,11 +145,12 @@ export default function SearchPage() {
   const supabase = createClientComponentClient()
   const [userId, setUserId] = useState('')
 
-useEffect(() => {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    setUserId(session?.user?.id || '')
-  })
-}, [])
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id || '')
+    })
+  }, [])
+
   const [query, setQuery] = useState('')
   const [area, setArea] = useState('All Areas')
   const [category, setCategory] = useState('')
@@ -161,10 +162,9 @@ useEffect(() => {
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
 
-  // Fetch for grid view
   const fetchPlaces = async (
     searchQuery = '', searchArea = 'All Areas',
-    searchCategory = '', sortBy = 'google_score',searchCuisine = ''
+    searchCategory = '', sortBy = 'google_score', searchCuisine = ''
   ) => {
     setLoading(true)
     try {
@@ -178,7 +178,7 @@ useEffect(() => {
       if (searchArea !== 'All Areas') q = q.ilike('address_en', `%${searchArea}%`)
       const catObj = CATEGORIES.find(c => c.key === searchCategory)
       if (catObj?.id) q = q.eq('category_id', catObj.id)
-            const cuisineObj = CUISINES.find(c => c.keyword === searchCuisine)
+      const cuisineObj = CUISINES.find(c => c.keyword === searchCuisine)
       if (cuisineObj) q = q.ilike('name_en', `%${cuisineObj.keyword}%`)
 
       const orderCol = sortBy === 'google_reviews' ? 'google_reviews' : sortBy === 'created_at' ? 'created_at' : 'google_score'
@@ -195,7 +195,6 @@ useEffect(() => {
     setLoading(false)
   }
 
-  // Fetch top 5 per category for discover view
   const fetchDiscoverData = async () => {
     setLoading(true)
     const result: Record<string, any[]> = {}
@@ -224,21 +223,24 @@ useEffect(() => {
   const handleCategoryClick = (key: string) => {
     const newCat = category === key ? '' : key
     setCategory(newCat)
+    setCuisine('')
     if (newCat) {
       setView('grid')
-      fetchPlaces(query, area, newCat, sort)
+      fetchPlaces(query, area, newCat, sort, '')
     } else {
       setView('discover')
       fetchDiscoverData()
     }
   }
-const handleCuisineClick = (keyword: string) => {
+
+  const handleCuisineClick = (keyword: string) => {
     const newCuisine = cuisine === keyword ? '' : keyword
     setCuisine(newCuisine)
     setCategory('')
     setView('grid')
     fetchPlaces(query, area, '', sort, newCuisine)
-}
+  }
+
   const handleSearch = () => {
     setView('grid')
     fetchPlaces(query, area, category, sort, cuisine)
@@ -277,13 +279,13 @@ const handleCuisineClick = (keyword: string) => {
         .cat-pill:hover { border-color: rgba(232,185,79,0.4); background: rgba(232,185,79,0.05); }
         .cat-pill.active { background: var(--gold-dim); border-color: var(--border-gold); color: var(--gold); font-weight: 600; }
         .cuisine-row { display: flex; gap: 16px; overflow-x: auto; padding: 14px 0 16px; scrollbar-width: none; }
-.cuisine-row::-webkit-scrollbar { display: none; }
-.cuisine-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0; }
-.cuisine-circle { width: 64px; height: 64px; border-radius: 50%; background: var(--dark3); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 26px; transition: all 0.15s; }
-.cuisine-chip:hover .cuisine-circle { border-color: rgba(232,185,79,0.4); background: rgba(232,185,79,0.05); }
-.cuisine-chip.active .cuisine-circle { border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 0 3px rgba(232,185,79,0.15); }
-.cuisine-label { font-size: 11px; color: var(--muted); font-family: 'DM Sans', sans-serif; white-space: nowrap; }
-.cuisine-chip.active .cuisine-label { color: var(--gold); font-weight: 600; }
+        .cuisine-row::-webkit-scrollbar { display: none; }
+        .cuisine-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0; }
+        .cuisine-circle { width: 64px; height: 64px; border-radius: 50%; background: var(--dark3); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 26px; transition: all 0.15s; }
+        .cuisine-chip:hover .cuisine-circle { border-color: rgba(232,185,79,0.4); background: rgba(232,185,79,0.05); }
+        .cuisine-chip.active .cuisine-circle { border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 0 3px rgba(232,185,79,0.15); }
+        .cuisine-label { font-size: 11px; color: var(--muted); font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+        .cuisine-chip.active .cuisine-label { color: var(--gold); font-weight: 600; }
         .results-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 14px; }
         .results-count { font-size: 12px; color: var(--muted); }
         .view-toggle { display: flex; background: var(--dark3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
@@ -291,8 +293,6 @@ const handleCuisineClick = (keyword: string) => {
         .view-btn.active { background: var(--gold); color: var(--dark); }
         .view-btn.inactive { background: transparent; color: var(--muted); }
         .results { padding: 24px 32px; }
-
-        /* DISCOVER */
         .cat-section { margin-bottom: 40px; }
         .cat-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
         .cat-section-title { display: flex; align-items: center; gap: 10px; }
@@ -301,8 +301,6 @@ const handleCuisineClick = (keyword: string) => {
         .see-all-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 4px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
         .scroll-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
         .scroll-row::-webkit-scrollbar { display: none; }
-
-        /* MINI CARD (discover) */
         .mini-card { min-width: 150px; max-width: 150px; flex-shrink: 0; background: var(--dark3); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.2s; text-decoration: none; display: block; }
         .mini-card:hover { border-color: var(--border-gold); transform: translateY(-3px); }
         .mini-img { width: 100%; height: 90px; position: relative; border-bottom: 1px solid var(--border); overflow: hidden; }
@@ -313,8 +311,6 @@ const handleCuisineClick = (keyword: string) => {
         .mini-name { font-family: 'Playfair Display', serif; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mini-area { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
         .mini-reviews { font-size: 10px; color: var(--muted2); margin-top: 3px; }
-
-        /* GRID CARD */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
         .card { background: var(--dark3); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.2s; text-decoration: none; display: block; }
         .card:hover { border-color: var(--border-gold); transform: translateY(-3px); }
@@ -324,11 +320,9 @@ const handleCuisineClick = (keyword: string) => {
         .card-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card-addr { font-size: 12px; color: var(--muted); margin-bottom: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card-reviews { font-size: 11px; color: var(--muted2); margin-top: 5px; }
-
         .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
         .empty-icon { font-size: 40px; margin-bottom: 12px; }
         .empty-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--text); }
-
         @media (max-width: 600px) {
           .nav, .search-hero { padding-left: 16px; padding-right: 16px; }
           .results { padding: 16px; }
@@ -338,13 +332,13 @@ const handleCuisineClick = (keyword: string) => {
 
       <nav className="nav">
         <Link href="/" className="nav-logo">Top965</Link>
-{userId ? (
-  <Link href="/profile" className="nav-btn" style={{ background: 'transparent', border: '1px solid rgba(232,185,79,0.35)', color: '#E8B94F' }}>
-    My Profile
-  </Link>
-) : (
-  <Link href="/auth/login" className="nav-btn">Sign In</Link>
-)}
+        {userId ? (
+          <Link href="/profile" className="nav-btn" style={{ background: 'transparent', border: '1px solid rgba(232,185,79,0.35)', color: '#E8B94F' }}>
+            My Profile
+          </Link>
+        ) : (
+          <Link href="/auth/login" className="nav-btn">Sign In</Link>
+        )}
       </nav>
 
       <div className="search-hero">
@@ -370,7 +364,8 @@ const handleCuisineClick = (keyword: string) => {
             </button>
           ))}
         </div>
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 4 }}>
+
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 4 }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', paddingTop: 10 }}>Cuisine</div>
           <div className="cuisine-row">
             {CUISINES.map(c => (
@@ -445,7 +440,7 @@ const handleCuisineClick = (keyword: string) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
                 <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 700 }}>
-                  <span style={{ color: '#E8B94F' }}>{activeCatLabel || query || 'All Places'}</span> in Kuwait
+                  <span style={{ color: '#E8B94F' }}>{activeCuisineLabel || activeCatLabel || query || 'All Places'}</span> in Kuwait
                 </div>
                 <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>{total} places found</div>
               </div>
